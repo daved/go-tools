@@ -393,6 +393,17 @@ func parseSections(ctx *Context, name string, lines *Lines, number []int) ([]Sec
 				for _, ss := range subsecs {
 					section.Elem = append(section.Elem, ss)
 				}
+			case strings.HasPrefix(text, "{JUMP}"):
+				var jumped bool
+				for _, c := range section.Classes {
+					if c == "jump" {
+						jumped = true
+						break
+					}
+				}
+				if !jumped {
+					section.Classes = append(section.Classes, "jump")
+				}
 			case strings.HasPrefix(text, "."):
 				args := strings.Fields(text)
 				if args[0] == ".background" {
