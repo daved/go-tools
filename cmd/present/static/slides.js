@@ -207,6 +207,15 @@ function updateSlides() {
 function prevSlide() {
   hideHelpText();
   if (curSlide > 0) {
+    var currSlideEl = slideEls[curSlide];
+    var prevSlideEl = slideEls[curSlide-1];
+    if (currSlideEl.classList.contains("jump") && !prevSlideEl.classList.contains("jump-prev")) {
+        prevSlideEl.classList.add("jump-prev");
+    }
+    if (!currSlideEl.classList.contains("jump") && prevSlideEl.classList.contains("jump-next")) {
+      prevSlideEl.classList.remove("jump-next");
+    }
+
     curSlide--;
 
     updateSlides();
@@ -218,6 +227,20 @@ function prevSlide() {
 function nextSlide() {
   hideHelpText();
   if (curSlide < slideEls.length - 1) {
+    var currSlideEl = slideEls[curSlide];
+    var nextSlideEl = slideEls[curSlide+1];
+    if (nextSlideEl.classList.contains("jump")) {
+      if (!nextSlideEl.classList.contains("jump-next")) {
+        nextSlideEl.classList.add("jump-next");
+      }
+      if (!currSlideEl.classList.contains("jump-past")) {
+        currSlideEl.classList.add("jump-past");
+      }
+    }
+    if (!nextSlideEl.classList.contains("jump") && nextSlideEl.classList.contains("jump-prev")) {
+      nextSlideEl.classList.remove("jump-prev");
+    }
+
     curSlide++;
 
     updateSlides();
