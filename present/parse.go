@@ -348,6 +348,10 @@ func parseSections(ctx *Context, name string, lines *Lines, number []int) ([]Sec
 			Number: append(append([]int{}, number...), i),
 			Title:  text[len(prefix)+1:],
 		}
+		if isPipedToFunc(text, jumpFuncToken) {
+			section.Classes = addUniq(section.Classes, jumpClassName)
+			section.Title = stripPipedFunc(section.Title, jumpFuncToken)
+		}
 		text, ok = lines.nextNonEmpty()
 		for ok && !lesserHeading(text, prefix) {
 			var e Elem
@@ -392,17 +396,6 @@ func parseSections(ctx *Context, name string, lines *Lines, number []int) ([]Sec
 				}
 				for _, ss := range subsecs {
 					section.Elem = append(section.Elem, ss)
-				}
-			case strings.HasPrefix(text, "{JUMP}"):
-				var jumped bool
-				for _, c := range section.Classes {
-					if c == "jump" {
-						jumped = true
-						break
-					}
-				}
-				if !jumped {
-					section.Classes = append(section.Classes, "jump")
 				}
 			case strings.HasPrefix(text, "."):
 				args := strings.Fields(text)
@@ -559,7 +552,6 @@ func parseURL(text string) Elem {
 	}
 	return Link{URL: u}
 }
-
 func parseTime(text string) (t time.Time, ok bool) {
 	t, err := time.Parse("15:04 2 Jan 2006", text)
 	if err == nil {
@@ -576,4 +568,42 @@ func parseTime(text string) (t time.Time, ok bool) {
 
 func isSpeakerNote(s string) bool {
 	return strings.HasPrefix(s, ": ")
+}
+
+const (
+	jumpFuncToken = ".jump"
+	jumpClassName = "jump"
+)
+
+func isPipedToFunc(s, fn string) bool {
+	ss := strings.Split(s, "|")
+	if len(ss) < 2 {
+		return false
+	}
+	f := strings.TrimSpace(ss[1])
+	return strings.HasPrefix(f, fn)
+}
+
+func stripPipedFunc(s string, fn string) string {
+	ss := strings.Split(s, "|")
+	if len(ss) < 2 {
+		return s
+	}
+	f := strings.TrimSpace(ss[1])
+	if !strings.HasPrefix(f, fn) {
+		return s
+	}
+	if len(ss[0]) > 0 && ss[0][len(ss[0])-1] == ' ' {
+		return ss[0][:len(ss[0])-1]
+	}
+	return ss[0]
+}
+
+func addUniq(ss []string, s string) []string {
+	for _, v := range ss {
+		if v == s {
+			return ss
+		}
+	}
+	return append(ss, s)
 }
